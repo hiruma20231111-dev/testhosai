@@ -10,11 +10,15 @@ export type Execution =
       fields: { label: string; value: string }[];
     };
 
+export type Theme = "sky" | "cyan" | "violet";
+
 export interface Scenario {
   id: string;
   icon: string;
   title: string;
   tag: string;
+  /** 固有のアクセントカラー */
+  theme: Theme;
   /** トリガーの発生元（受信チャネル） */
   triggerSource: string;
   triggerText: string;
@@ -41,6 +45,7 @@ export const scenarios: Scenario[] = [
     icon: "📅",
     title: "院長のスケジュール衝突",
     tag: "スケジュール調整 / 外部交渉",
+    theme: "sky",
     triggerSource: "受信メール（医師会）",
     triggerText:
       "医師会より「来週水曜 14:00〜 緊急役員会」のメールを受信。しかし院長カレンダーには同時刻に「製薬会社（A社）との面談」が登録済みで、ダブルブッキングが発生している。",
@@ -67,6 +72,7 @@ export const scenarios: Scenario[] = [
     icon: "❄️",
     title: "ナースステーションのエアコン故障",
     tag: "設備保守 / 業者手配",
+    theme: "cyan",
     triggerSource: "院内チャット（病棟看護師）",
     triggerText:
       "「2階のナースステーションのエアコンから異音がして、冷えが悪くなってきた」と病棟看護師よりチャットで連絡が入った。",
@@ -93,6 +99,7 @@ export const scenarios: Scenario[] = [
     icon: "📦",
     title: "コピー用紙の在庫低下と健診需要",
     tag: "在庫管理 / 自動発注",
+    theme: "violet",
     triggerSource: "在庫センサー（スマートマット）",
     triggerText:
       "在庫センサー（スマートマット）が、A4コピー用紙の在庫が「残り2箱」になったことを検知した。",

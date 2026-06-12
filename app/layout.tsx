@@ -14,7 +14,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="relative min-h-full flex flex-col overflow-x-hidden">
+        <div className="bg-orbs" aria-hidden />
+        <div className="bg-grid" aria-hidden />
+        <div className="relative z-[1] flex min-h-full flex-1 flex-col">
+          {children}
+        </div>
+      </body>
     </html>
   );
 }

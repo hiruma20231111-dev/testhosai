@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f1f5f9;
-  --foreground: #0f172a;
+  --background: #060b18;
+  --foreground: #e2e8f0;
 }
 
 @theme inline {
@@ -14,28 +14,112 @@
     monospace;
 }
 
+html,
 body {
-  background:
-    radial-gradient(1200px 600px at 100% -10%, rgba(20, 184, 166, 0.12), transparent 60%),
-    radial-gradient(900px 500px at -10% 10%, rgba(59, 130, 246, 0.1), transparent 55%),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
 }
 
-/* ---- アニメーション ---- */
+/* ===== 装飾レイヤー ===== */
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bg-orbs::before,
+.bg-orbs::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.55;
+}
+.bg-orbs::before {
+  width: 46rem;
+  height: 46rem;
+  top: -16rem;
+  right: -10rem;
+  background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+  animation: float 14s ease-in-out infinite;
+}
+.bg-orbs::after {
+  width: 40rem;
+  height: 40rem;
+  bottom: -14rem;
+  left: -12rem;
+  background: radial-gradient(circle, #7c3aed 0%, transparent 70%);
+  animation: float 18s ease-in-out infinite reverse;
+}
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+}
+
+/* ===== ガラス ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+.glass-soft {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ===== アニメーション ===== */
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(0, 30px) scale(1.06);
+  }
+}
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 @keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes dotpulse {
   0%,
   80%,
   100% {
@@ -47,22 +131,95 @@ body {
     transform: translateY(-3px);
   }
 }
-
-.animate-step {
-  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+@keyframes ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(34, 211, 238, 0);
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--bx), var(--by)) scale(0.3);
+  }
 }
 
+.animate-step {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-pop {
+  animation: pop 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* タイピングのキャレット */
+.caret {
+  display: inline-block;
+  width: 0.55ch;
+  height: 1.05em;
+  margin-left: 1px;
+  vertical-align: -2px;
+  background: currentColor;
+  border-radius: 1px;
+  animation: blink 1s step-end infinite;
+}
+
+/* 思考中ドット */
 .dot {
   display: inline-block;
   width: 7px;
   height: 7px;
   border-radius: 9999px;
   background: currentColor;
-  animation: blink 1.2s infinite both;
+  animation: dotpulse 1.2s infinite both;
 }
 .dot:nth-child(2) {
   animation-delay: 0.15s;
 }
 .dot:nth-child(3) {
   animation-delay: 0.3s;
+}
+
+.pulse-ring {
+  animation: ring 1.8s ease-out infinite;
+}
+
+/* progress shimmer bar */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* approve burst particle */
+.particle {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  animation: burst 0.9s ease-out forwards;
+}
+
+/* スクロールバー控えめ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
 }
