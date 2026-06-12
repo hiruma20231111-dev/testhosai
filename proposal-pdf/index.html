@@ -166,6 +166,18 @@
   .qrbox img{ width:80px; height:80px; display:block; }
   .qrbox .cap{ font-size:8.5px; font-weight:800; color:#0f172a; letter-spacing:.5px; }
   .qrbox.lg img{ width:108px; height:108px; }
+
+  /* ツール実行ログ（ターミナル風） */
+  .termlog{ background:#0b1220; border:1px solid #1e293b; border-radius:10px; overflow:hidden; margin-top:8px; }
+  .termlog .th{ display:flex; align-items:center; gap:8px; padding:7px 12px; border-bottom:1px solid #1e293b; color:#cbd5e1; font-size:11px; font-weight:700; }
+  .termlog .th .badge{ margin-left:auto; font-family:var(--font-mono,monospace); font-size:10px; color:#c4b5fd; background:rgba(167,139,250,.18); border-radius:999px; padding:2px 9px; }
+  .termlog .bar{ height:3px; background:linear-gradient(90deg,#a78bfa,#e879f9); }
+  .termlog .body{ padding:9px 12px; font-family:"SFMono-Regular","Consolas",monospace; font-size:10.5px; line-height:1.5; color:#cbd5e1; }
+  .termlog .ln{ padding:3px 0; }
+  .termlog .ln .ok{ color:#34d399; font-weight:900; }
+  .termlog .ln .tool{ background:rgba(255,255,255,.09); border-radius:4px; padding:1px 6px; font-size:9.5px; font-weight:700; color:#e2e8f0; }
+  .termlog .ln .call{ color:#cbd5e1; }
+  .termlog .res{ padding-left:17px; color:#6ee7b7; }
 </style>
 </head>
 <body>
@@ -248,9 +260,48 @@
   <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>01 / AIエージェントとは</span></div>
 </section>
 
-<!-- ===== 02 医療 ===== -->
+<!-- ===== 02 ツール実行 ===== -->
 <section class="sheet">
-  <div class="pagehead"><span class="no">02</span><h2>医療｜できること</h2><span class="en">For Clinics & Hospitals</span></div>
+  <div class="pagehead"><span class="no">02</span><h2>エージェントの"中身" ─ ツールを使って自律処理</h2><span class="en">Tool Use</span></div>
+  <p class="body">AIエージェントは、頭で考えるだけでなく、<b>実際に社内の道具（ツール）を呼び出して作業</b>します。デモでは、その一つ一つを<b>「ツール実行ログ」</b>としてライブ表示。"何を見て・何をしたか"がすべて見えるので、ブラックボックスになりません。</p>
+
+  <div class="mt12"><span class="h3">考えるだけでなく、道具を使って実行する</span></div>
+  <div class="steps3" style="grid-template-columns:repeat(3,1fr);">
+    <div class="it"><span class="ph">判断</span><div class="h">どの道具を使うか決める</div><div class="p">「カレンダーで空きを確認し、メールを作ろう」と自分で計画</div></div>
+    <div class="it"><span class="ph">実行</span><div class="h">ツールを順に呼び出す</div><div class="p">カレンダー / 台帳 / 会計 / メール…を1つずつ実行しログに残す</div></div>
+    <div class="it"><span class="ph">起案</span><div class="h">結果を使って成果物に</div><div class="p">取得した情報をもとに、メール・見積・発注書を生成</div></div>
+  </div>
+
+  <div class="mt12"><span class="h3">ツール実行ログ（デモ画面より）</span></div>
+  <div class="termlog">
+    <div class="th"><span>🔧</span><span>ツール実行ログ</span><span class="badge">4 / 4 実行</span></div>
+    <div class="bar"></div>
+    <div class="body">
+      <div class="ln"><span class="ok">✓</span> <span class="tool">AssetDB</span> <span class="call">assets.lookup('2F ナースステーション エアコン')</span><div class="res">→ 型番 ダイキンXYZ-123 を特定</div></div>
+      <div class="ln"><span class="ok">✓</span> <span class="tool">Contracts</span> <span class="call">contracts.findMaintenance(該当機器)</span><div class="res">→ B空調管理（24時間対応）と契約中</div></div>
+      <div class="ln"><span class="ok">✓</span> <span class="tool">Mail</span> <span class="call">mail.compose(修理依頼, 型番+症状)</span><div class="res">→ 依頼メール下書きを生成</div></div>
+      <div class="ln"><span class="ok">✓</span> <span class="tool">Chat</span> <span class="call">chat.reply(看護師, '業者を手配中')</span><div class="res">→ 一次返答を送信予約</div></div>
+    </div>
+  </div>
+  <div class="small mt6">※ 上記は医療「エアコン故障」シーンの実際のログ。業種・シーンごとに、使うツールは自動で変わります。</div>
+
+  <div class="mt12"><span class="h3">エージェントが扱えるツール（例）</span></div>
+  <div class="applic">
+    <div class="it"><div class="h">🗓 カレンダー / 連絡先</div><div class="p">予定の空き確認、ダブルブッキング検出、関係先の連絡先取得</div></div>
+    <div class="it"><div class="h">🏭 設備台帳 / 保守契約</div><div class="p">機器の型番照合、保守契約先・対応時間の特定</div></div>
+    <div class="it"><div class="h">📦 在庫 / 購買</div><div class="p">在庫しきい値の監視、最安・最短の発注先の見積取得</div></div>
+    <div class="it"><div class="h">📇 CRM / 価格</div><div class="p">過去案件の検索、数量割引単価・標準納期の算出</div></div>
+    <div class="it"><div class="h">💴 会計 / 請求</div><div class="p">入金消込・未入金の検出、請求書・発注書の作成</div></div>
+    <div class="it"><div class="h">✉️ メール / チャット / レポート</div><div class="p">文面の下書き、一次返答の送信、月次サマリーの生成</div></div>
+  </div>
+
+  <div class="value mt12"><b>なぜ重要か</b>：すべての操作がログに残る＝<b>監査できる</b>。人は「成果物」と「実行ログ」を見て、何が行われたかを把握したうえで安心して承認できます。</div>
+  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>02 / ツール実行</span></div>
+</section>
+
+<!-- ===== 03 医療 ===== -->
+<section class="sheet">
+  <div class="pagehead"><span class="no">03</span><h2>医療｜できること</h2><span class="en">For Clinics & Hospitals</span></div>
   <div class="indhead">
     <div class="badge bg-teal">🏥</div>
     <div><div class="ti">クリニック・病院の院長秘書／総務を、AIが先回り</div><div class="sb">調整・手配・発注の"判断前の準備"を肩代わり。先生やスタッフは承認と対人対応に集中できます。</div></div>
@@ -288,12 +339,12 @@
     </ul></div>
   </div>
   <div class="value mt12"><b>提供価値</b>：属人化しがちな台帳・在庫・期限管理が標準化され、スタッフは患者対応という本来の価値に集中できます。</div>
-  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>02 / 医療</span></div>
+  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>03 / 医療</span></div>
 </section>
 
 <!-- ===== 03 中小企業 ===== -->
 <section class="sheet">
-  <div class="pagehead v"><span class="no">03</span><h2>中小企業｜できること</h2><span class="en">For SMB</span></div>
+  <div class="pagehead v"><span class="no">04</span><h2>中小企業｜できること</h2><span class="en">For SMB</span></div>
   <div class="indhead">
     <div class="badge bg-violet">🏢</div>
     <div><div class="ti">営業事務・購買・経理のルーチンを、AIが自律処理</div><div class="sb">「担当不在で機会損失」「納期トラブルの連絡漏れ」「未入金の督促忘れ」をAIが先回りで防ぎます。</div></div>
@@ -331,12 +382,12 @@
     </ul></div>
   </div>
   <div class="value mt12"><b>提供価値</b>：少人数でも、即レス・抜け漏れゼロの事務体制に。機会損失と信用低下を防ぎ、資金回収を早めます。<span class="small">　関西ぱど自社では内勤業務の50%自動化を実証（出典：株式会社関西ぱど 内勤部門実践値）。</span></div>
-  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>03 / 中小企業</span></div>
+  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>04 / 中小企業</span></div>
 </section>
 
 <!-- ===== 04 個人事業主 ===== -->
 <section class="sheet">
-  <div class="pagehead c"><span class="no">04</span><h2>個人事業主｜できること</h2><span class="en">For Solopreneurs</span></div>
+  <div class="pagehead c"><span class="no">05</span><h2>個人事業主｜できること</h2><span class="en">For Solopreneurs</span></div>
   <div class="indhead">
     <div class="badge bg-cyan">👤</div>
     <div><div class="ti">請求・日程・経費まわりの雑務を、AIが肩代わり</div><div class="sb">分身が利かない個人事業主こそ、事務を任せて"本業の時間"を取り戻せます。</div></div>
@@ -374,12 +425,12 @@
     </ul></div>
   </div>
   <div class="value mt12"><b>提供価値</b>：請求漏れ・督促忘れ・申告前の徹夜がなくなり、キャッシュフローが安定。事務に追われず本業に集中できます。</div>
-  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>04 / 個人事業主</span></div>
+  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>05 / 個人事業主</span></div>
 </section>
 
 <!-- ===== 05 拡張性 ===== -->
 <section class="sheet">
-  <div class="pagehead"><span class="no">05</span><h2>拡張性 ─ 例えば、こんなこともできる</h2><span class="en">Extensibility</span></div>
+  <div class="pagehead"><span class="no">06</span><h2>拡張性 ─ 例えば、こんなこともできる</h2><span class="en">Extensibility</span></div>
   <p class="body">仕組み（<b>トリガー → 自律思考 → 人間が承認</b>）は業種を問わず共通。つなぐデータとシナリオを差し替えるだけで、<b>1つ作れば社内のあらゆる業務へ横展開</b>できます。</p>
 
   <div class="mt10"><span class="h3">使うほど・つなぐほど、賢くなる（発展の3段階）</span></div>
@@ -416,12 +467,12 @@
   </div>
 
   <div class="value mt12"><b>横展開のしやすさ</b>：新しい業務は「どのデータを見て・何を作り・誰が承認するか」を決めるだけで追加できます。<span class="small">　※ 個人情報・医療情報など機微なデータは、参照のみ・社内ルール厳守で慎重に設計します。</span></div>
-  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>05 / 拡張性</span></div>
+  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>06 / 拡張性</span></div>
 </section>
 
 <!-- ===== 06 権限委譲 ===== -->
 <section class="sheet">
-  <div class="pagehead"><span class="no">06</span><h2>権限委譲 ─ どこまで"無人"にできるか</h2><span class="en">Autonomy Levels</span></div>
+  <div class="pagehead"><span class="no">07</span><h2>権限委譲 ─ どこまで"無人"にできるか</h2><span class="en">Autonomy Levels</span></div>
   <p class="body">Human-in-the-Loop は「固定」ではありません。業務のリスクと運用実績に応じて、AIに渡す権限を<b>段階的に引き上げ</b>られます。<b>低リスクは無人化、重要判断は人が承認</b>と切り分けるのが現実的です。</p>
 
   <div class="mt10"><span class="h3">自律度の4段階</span></div>
@@ -470,12 +521,12 @@
     </div>
     <p style="font-size:10px; line-height:1.6; margin-top:9px;">設定した範囲を一歩でも超えた依頼は、<b style="color:#fca5a5;">自動で実行を停止し、人へエスカレーション</b>。「任せきり」ではなく「柵の中で任せる」設計です。</p>
   </div>
-  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>06 / 権限委譲</span></div>
+  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>07 / 権限委譲</span></div>
 </section>
 
 <!-- ===== 07 自分で作れるようになる ===== -->
 <section class="sheet">
-  <div class="pagehead v"><span class="no">07</span><h2>"使う"から"自分で作る"へ ─ AIブートキャンプ</h2><span class="en">Bootcamp ①</span></div>
+  <div class="pagehead v"><span class="no">08</span><h2>"使う"から"自分で作る"へ ─ AIブートキャンプ</h2><span class="en">Bootcamp ①</span></div>
   <p class="body">
     ここまでご覧いただいたAIエージェントを、<b>外注に頼らず自社で作れるようになる</b>のが「関西ぱど AIブートキャンプ」です。
     プログラミング未経験の非エンジニアでも、<b>わずか2日間で"使える実務アプリ"をその場で構築</b>。学ぶのはアプリの作り方ではなく、<b>AIで業務そのものを変える具体的な施策</b>です。
@@ -503,12 +554,12 @@
   </ul>
 
   <div class="value mt12"><b>「アプリを作って終わり」ではありません。</b>属人化していた手作業を仕組みに置き換え、ランニングコストを削減しながら、現場への定着率と改善スピードを引き上げる ── その全プロセスを、貴社の業務に当てはめて研修します。</div>
-  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>07 / ブートキャンプ</span></div>
+  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>08 / ブートキャンプ</span></div>
 </section>
 
 <!-- ===== 08 開催概要＆まとめ ===== -->
 <section class="sheet">
-  <div class="pagehead v"><span class="no">08</span><h2>開催概要 ＆ はじめ方</h2><span class="en">Bootcamp ② / Get Started</span></div>
+  <div class="pagehead v"><span class="no">09</span><h2>開催概要 ＆ はじめ方</h2><span class="en">Bootcamp ② / Get Started</span></div>
 
   <div class="bcfacts">
     <div class="f"><b>2日間</b><span>集中プログラム</span></div>
@@ -560,7 +611,7 @@
     <div class="it"><b>ブートキャンプで内製化</b> ── 自社に合った"使える仕組み"を、自分の手で作れるようになる。</div>
   </div>
 
-  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>08 / 開催概要 ＆ はじめ方</span></div>
+  <div class="footer"><span>関西ぱど AIブートキャンプ ─ AIエージェント提案資料</span><span>09 / 開催概要 ＆ はじめ方</span></div>
 </section>
 
 </body>
