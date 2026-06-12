@@ -279,6 +279,7 @@ function Console({
 }) {
   const t = THEME[scenario.theme];
   const progress = Math.min(stage, 5);
+  const [toolsRun, setToolsRun] = useState(0);
   const st = agentStatus(stage, decision);
   const sc = STATUS_COLOR[st.color];
   const running = st.live && stage < 6 && decision === "pending";
@@ -311,7 +312,7 @@ function Console({
         <span className="ml-auto flex items-center gap-3 font-mono text-[11px] text-slate-400">
           <span>⏱ <ElapsedTimer active={running} /></span>
           <span className="text-slate-600">|</span>
-          <span>🔧 {stage >= 4 || decision !== "pending" ? scenario.toolCalls.length : stage >= 3 ? "…" : 0} ツール</span>
+          <span className={stage >= 3 ? "text-violet-300" : ""}>🔧 {toolsRun}/{scenario.toolCalls.length} ツール</span>
         </span>
       </div>
 
@@ -340,7 +341,7 @@ function Console({
 
         {stage >= 3 && (
           <StepCard n={3} label="ツール実行" sub="Tools" accent="violet">
-            <ToolRunner calls={scenario.toolCalls} done={stage > 3} onDone={() => onAdvance(3)} />
+            <ToolRunner calls={scenario.toolCalls} done={stage > 3} onDone={() => onAdvance(3)} onProgress={setToolsRun} />
           </StepCard>
         )}
 
@@ -424,11 +425,12 @@ function Stepper({ stage, theme }: { stage: number; theme: Theme }) {
 /* ============================ Tool Runner（可視化の核） ============================ */
 
 function ToolRunner({
-  calls, done, onDone,
+  calls, done, onDone, onProgress,
 }: {
   calls: { tool: string; call: string; result: string }[];
   done: boolean;
   onDone: () => void;
+  onProgress?: (n: number) => void;
 }) {
   const [n, setN] = useState(done ? calls.length : 0); // 完了済み件数
   const firedRef = useRef(false);
@@ -439,46 +441,63 @@ function ToolRunner({
       if (!firedRef.current) { firedRef.current = true; onDone(); }
       return;
     }
-    const id = window.setTimeout(() => setN((v) => v + 1), 820);
+    const id = window.setTimeout(() => setN((v) => v + 1), 780);
     return () => clearTimeout(id);
   }, [n, calls.length, done, onDone]);
 
-  const running = !done && n < calls.length;
+  useEffect(() => {
+    onProgress?.(done ? calls.length : n);
+  }, [n, done, calls.length, onProgress]);
+
+  const completed = done ? calls.length : n;
+  const allDone = completed >= calls.length;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/10 bg-[#060a14]">
+    <div className="overflow-hidden rounded-xl border border-violet-400/20 bg-[#060a14]">
       <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-4 py-2">
         <span className="text-base">🔧</span>
         <span className="text-xs font-bold text-slate-300">ツール実行ログ</span>
-        <span className="ml-auto font-mono text-[10px] text-slate-500">
-          {done ? calls.length : n}/{calls.length}
+        {!allDone && <span className="text-violet-300"><span className="dot" /><span className="dot" /><span className="dot" /></span>}
+        <span className="ml-auto rounded-full bg-violet-400/15 px-2 py-0.5 font-mono text-[10px] font-bold text-violet-300">
+          {completed}/{calls.length} 実行
         </span>
       </div>
-      <div className="space-y-1.5 px-4 py-3 font-mono text-[12px] leading-relaxed">
+      {/* progress bar */}
+      <div className="h-0.5 w-full bg-white/5">
+        <div className="h-full bg-gradient-to-r from-violet-400 to-fuchsia-500 transition-all duration-500" style={{ width: `${(completed / calls.length) * 100}%` }} />
+      </div>
+      <div className="space-y-1 px-3 py-3 font-mono text-[12px] leading-relaxed">
         {calls.map((c, i) => {
           const finished = done || i < n;
           const current = !done && i === n;
           if (!finished && !current) {
             return (
-              <div key={i} className="flex items-center gap-2 text-slate-600">
+              <div key={i} className="flex items-center gap-2 px-1 py-1 text-slate-600">
                 <span className="w-3 text-center">·</span>
                 <span>{c.tool}</span>
+                <span className="text-slate-700">— 待機中</span>
               </div>
             );
           }
           return (
-            <div key={i} className="animate-step">
+            <div
+              key={i}
+              className={[
+                "animate-step rounded-md px-2 py-1",
+                current ? "bg-violet-500/10 ring-1 ring-violet-400/40" : "",
+              ].join(" ")}
+            >
               <div className="flex items-center gap-2">
                 <span className={`w-3 text-center ${finished ? "text-emerald-400" : "text-violet-300"}`}>
                   {finished ? "✓" : <span className="inline-block animate-pulse">▸</span>}
                 </span>
-                <span className="rounded bg-white/10 px-1.5 py-px text-[10px] font-bold text-slate-200">{c.tool}</span>
+                <span className={`rounded px-1.5 py-px text-[10px] font-bold ${finished ? "bg-white/10 text-slate-200" : "bg-violet-400/20 text-violet-200"}`}>{c.tool}</span>
                 <span className="text-slate-300">{c.call}</span>
               </div>
               {finished ? (
                 <div className="pl-5 text-emerald-300/90">→ {c.result}</div>
               ) : (
-                <div className="pl-5 text-slate-500">→ 実行中…</div>
+                <div className="pl-5 text-violet-300/80">→ <span className="animate-pulse">実行中…</span></div>
               )}
             </div>
           );
