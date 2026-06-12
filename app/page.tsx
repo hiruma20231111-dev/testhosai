@@ -685,16 +685,16 @@ function HumanInTheLoop({
       <p className="mt-1 text-[12px] text-amber-200/70">
         送信・発注・確定などの最終決定は、必ず人間が行います。
       </p>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         <button
           onClick={onApprove}
-          className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 transition hover:brightness-110 active:scale-95"
+          className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 transition hover:brightness-110 active:scale-95 sm:w-auto sm:py-2"
         >
           {scenario.approveLabel}
         </button>
         <button
           onClick={onRevise}
-          className="rounded-xl border border-white/15 bg-white/5 px-5 py-2 text-sm font-bold text-slate-200 transition hover:bg-white/10 active:scale-95"
+          className="w-full rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-bold text-slate-200 transition hover:bg-white/10 active:scale-95 sm:w-auto sm:py-2"
         >
           修正する
         </button>
