@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { scenarios, type Scenario, type Theme } from "./scenarios";
+import {
+  scenariosByMode,
+  modes,
+  type Scenario,
+  type Theme,
+  type Mode,
+} from "./scenarios";
 
 type Decision = "pending" | "approved" | "revised";
 
@@ -41,24 +47,32 @@ const THEME: Record<
 };
 
 export default function Home() {
+  const [activeMode, setActiveMode] = useState<Mode>("medical");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [stage, setStage] = useState(0);
   const [decision, setDecision] = useState<Decision>("pending");
 
+  const modeInfo = modes.find((m) => m.id === activeMode)!;
+  const scenarios = scenariosByMode[activeMode];
   const active = scenarios.find((s) => s.id === activeId) ?? null;
-
-  function selectScenario(id: string) {
-    setActiveId(id);
-    setStage(0);
-    setDecision("pending");
-    // 起動演出のあとThoughtへ
-    window.setTimeout(() => setStage(1), 650);
-  }
 
   function reset() {
     setActiveId(null);
     setStage(0);
     setDecision("pending");
+  }
+
+  function changeMode(id: Mode) {
+    if (id === activeMode) return;
+    setActiveMode(id);
+    reset();
+  }
+
+  function selectScenario(id: string) {
+    setActiveId(id);
+    setStage(0);
+    setDecision("pending");
+    window.setTimeout(() => setStage(1), 650);
   }
 
   return (
@@ -67,8 +81,32 @@ export default function Home() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 sm:px-6">
         <Hero />
 
-        <section className="mt-10">
-          <SectionLabel index="01">トリガー（状況発生）を選択</SectionLabel>
+        {/* 業種切り替え */}
+        <section className="mt-8">
+          <SectionLabel index="01">あなたの業種を選ぶ</SectionLabel>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {modes.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => changeMode(m.id)}
+                className={[
+                  "flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition-all",
+                  activeMode === m.id
+                    ? "glass border-cyan-400/40 text-white shadow-[0_0_30px_-10px_rgba(34,211,238,0.7)]"
+                    : "glass-soft text-slate-400 hover:text-white hover:border-white/20",
+                ].join(" ")}
+              >
+                <span className="text-lg">{m.icon}</span>
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-400">{modeInfo.blurb}</p>
+        </section>
+
+        {/* シナリオ選択 */}
+        <section className="mt-8">
+          <SectionLabel index="02">トリガー（状況発生）を選択</SectionLabel>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             {scenarios.map((s) => (
               <ScenarioCard
@@ -81,15 +119,17 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-10">
-          <SectionLabel index="02">エージェント実行コンソール</SectionLabel>
+        {/* エージェント実行コンソール */}
+        <section className="mt-8">
+          <SectionLabel index="03">エージェント実行コンソール</SectionLabel>
           <div className="mt-4">
             {!active ? (
               <EmptyConsole />
             ) : (
               <Console
-                key={active.id}
+                key={activeMode + active.id}
                 scenario={active}
+                sessionPrefix={modeInfo.sessionPrefix}
                 stage={stage}
                 decision={decision}
                 onAdvance={(from) =>
@@ -116,16 +156,16 @@ function Header() {
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-violet-600 text-lg font-black text-white shadow-lg shadow-cyan-500/30">
-            ✚
+            ✦
             <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-[#060b18] pulse-ring" />
           </div>
           <div>
             <p className="text-sm font-black tracking-tight text-white">
-              MediAgent
+              AIエージェント体験デモ
             </p>
             <p className="flex items-center gap-1.5 text-[11px] text-slate-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              自律AIエージェント・稼働中
+              関西ぱど AIブートキャンプ
             </p>
           </div>
         </div>
@@ -149,18 +189,19 @@ function Hero() {
           自ら考えて動く
         </span>
         <br className="hidden sm:block" />
-        病院の秘書AI。
+        あなたの仕事のAIエージェント。
       </h1>
       <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-400">
         現場で起きた状況（トリガー）に対し、
         <span className="font-semibold text-slate-200">
           状況分析 → 自律アクション → 文面作成 → 完了報告
         </span>
-        までをリアルタイムに思考。送信・発注などの最終決定は必ず人間が承認する設計です。
+        までをリアルタイムに思考。送信・発注などの最終決定は必ず人間が承認します。
+        <span className="text-slate-300">業種を切り替えて、自分ごととして体験してください。</span>
       </p>
       <div className="mt-6 grid grid-cols-3 gap-3">
-        <StatChip value="4" label="思考ステップ" accent="text-cyan-300" />
-        <StatChip value="3" label="対応シナリオ" accent="text-sky-300" />
+        <StatChip value="3×3" label="業種 × シナリオ" accent="text-cyan-300" />
+        <StatChip value="4" label="思考ステップ" accent="text-sky-300" />
         <StatChip value="100%" label="人間が最終承認" accent="text-violet-300" />
       </div>
     </section>
@@ -234,6 +275,7 @@ function ScenarioCard({
 
 function Console({
   scenario,
+  sessionPrefix,
   stage,
   decision,
   onAdvance,
@@ -242,6 +284,7 @@ function Console({
   onReset,
 }: {
   scenario: Scenario;
+  sessionPrefix: string;
   stage: number;
   decision: Decision;
   onAdvance: (from: number) => void;
@@ -263,7 +306,7 @@ function Console({
             <span className="h-3 w-3 rounded-full bg-emerald-400/80" />
           </span>
           <span className="ml-2 font-mono text-xs font-bold text-slate-300">
-            mediagent://session/{scenario.id}
+            {sessionPrefix}://session/{scenario.id}
           </span>
         </div>
         <button
@@ -320,7 +363,11 @@ function Console({
 
         {stage >= 4 && (
           <StepCard n={4} label="完了報告" sub="Result" accent="emerald">
-            <Typewriter text={scenario.result} done={stage > 4} onDone={() => onAdvance(4)} />
+            <Typewriter
+              text={scenario.result}
+              done={stage > 4}
+              onDone={() => onAdvance(4)}
+            />
             {stage >= 5 && (
               <HumanInTheLoop
                 scenario={scenario}
@@ -332,9 +379,7 @@ function Console({
           </StepCard>
         )}
 
-        {stage < 4 && (
-          <ThinkingBar stage={stage} theme={scenario.theme} />
-        )}
+        {stage < 4 && <ThinkingBar stage={stage} theme={scenario.theme} />}
       </div>
     </div>
   );
@@ -408,9 +453,7 @@ function ThinkingBar({ stage, theme }: { stage: number; theme: Theme }) {
         <span className="dot" />
         <span className="dot" />
       </span>
-      <span className="font-mono text-xs text-slate-400">
-        {labels[stage]}
-      </span>
+      <span className="font-mono text-xs text-slate-400">{labels[stage]}</span>
     </div>
   );
 }
@@ -576,9 +619,9 @@ function ExecutionView({
     <div className="animate-pop overflow-hidden rounded-xl border border-white/10 bg-[#0a1120]/80">
       <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-4 py-2">
         <span className="text-base">🧾</span>
-        <span className="text-xs font-bold text-slate-300">発注承認申請書</span>
+        <span className="text-xs font-bold text-slate-300">{ex.docLabel}</span>
         <span className="ml-auto rounded bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold text-amber-300">
-          未発注・要承認
+          要承認
         </span>
       </div>
       <dl className="divide-y divide-white/5 px-4 py-1 text-sm">
@@ -640,7 +683,7 @@ function HumanInTheLoop({
         最終確認・承認（Human-in-the-Loop）
       </p>
       <p className="mt-1 text-[12px] text-amber-200/70">
-        コンプライアンス上、送信・発注の最終決定は人間が行います。
+        送信・発注・確定などの最終決定は、必ず人間が行います。
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <button
@@ -746,8 +789,10 @@ function Footer() {
       <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6">
         <p className="text-[11px] leading-relaxed text-slate-500">
           ※ 本アプリは自律型AIエージェントの動作を可視化したデモ（シミュレーション）です。
-          実際のメール送信・発注・カレンダー更新は行われません。
-          表示される会社名・型番・金額はサンプルです。
+          実際のメール送信・発注・カレンダー更新は行われません。表示される会社名・型番・金額・氏名はサンプルです。
+        </p>
+        <p className="mt-2 text-[11px] text-slate-500">
+          関西ぱど AIブートキャンプ ── 現場で使えるAIエージェントを、自分で作れるようになる伴走型プログラム。
         </p>
       </div>
     </footer>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>MediAgent 商談資料</title>
+<style>
+  :root{
+    --teal:#0d9488; --cyan:#0891b2; --violet:#7c3aed;
+    --ink:#0f172a; --sub:#475569; --mut:#64748b;
+    --line:#e2e8f0; --soft:#f8fafc; --soft2:#f1f5f9;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  @page{ size:A4; margin:0; }
+  html,body{
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+    color:var(--ink); -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .sheet{
+    position:relative; width:210mm; min-height:297mm;
+    padding:18mm 16mm 16mm; page-break-after:always; overflow:hidden;
+  }
+  .sheet:last-child{ page-break-after:auto; }
+
+  /* ===== 表紙 ===== */
+  .cover{
+    color:#fff; padding:0;
+    background:
+      radial-gradient(120% 80% at 100% 0%, rgba(13,148,136,.95), transparent 60%),
+      radial-gradient(120% 80% at 0% 100%, rgba(124,58,237,.9), transparent 60%),
+      linear-gradient(135deg,#0b1220 0%, #0f172a 60%, #111827 100%);
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .cover-inner{ padding:30mm 20mm; display:flex; flex-direction:column; height:297mm; }
+  .cover .brand{ display:flex; align-items:center; gap:12px; }
+  .cover .logo{
+    width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:24px; font-weight:900; background:linear-gradient(135deg,#22d3ee,#a78bfa); color:#fff;
+  }
+  .cover .brand .name{ font-size:18px; font-weight:800; letter-spacing:.5px; }
+  .cover .brand .tag{ font-size:11px; color:#94a3b8; }
+  .cover .eyebrow{
+    display:inline-block; margin-top:auto; font-size:12px; font-weight:700; letter-spacing:2px;
+    color:#5eead4; border:1px solid rgba(94,234,212,.4); padding:5px 12px; border-radius:999px; align-self:flex-start;
+  }
+  .cover h1{ font-size:40px; line-height:1.25; font-weight:900; margin-top:18px; }
+  .cover h1 .accent{ background:linear-gradient(90deg,#5eead4,#a78bfa); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .cover .lead{ margin-top:18px; font-size:14px; line-height:1.9; color:#cbd5e1; max-width:150mm; }
+  .cover .meta{ margin-top:auto; display:flex; gap:30px; font-size:12px; color:#94a3b8; border-top:1px solid rgba(255,255,255,.12); padding-top:16px; }
+  .cover .meta b{ color:#e2e8f0; font-weight:700; }
+  .cover .url{ color:#5eead4; }
+
+  /* ===== 共通 ===== */
+  .pagehead{ display:flex; align-items:center; gap:10px; border-bottom:2px solid var(--teal); padding-bottom:8px; margin-bottom:14px; }
+  .pagehead .no{ font-size:12px; font-weight:900; color:#fff; background:var(--teal); border-radius:6px; padding:3px 9px; }
+  .pagehead h2{ font-size:18px; font-weight:800; color:var(--ink); }
+  .pagehead .en{ margin-left:auto; font-size:10px; letter-spacing:2px; color:var(--mut); text-transform:uppercase; }
+
+  p.body{ font-size:12px; line-height:1.85; color:var(--sub); }
+  .mt8{ margin-top:8px; } .mt12{ margin-top:12px; } .mt16{ margin-top:16px; } .mt20{ margin-top:20px; }
+
+  .card{ border:1px solid var(--line); border-radius:10px; padding:12px 14px; background:var(--soft); }
+  .grid3{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .step{ border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fff; }
+  .step .n{ font-size:18px; font-weight:900; }
+  .step .t{ font-size:12px; font-weight:800; }
+  .step .en{ font-size:9px; letter-spacing:1.5px; color:var(--mut); text-transform:uppercase; }
+  .step .d{ font-size:10.5px; color:var(--sub); margin-top:4px; line-height:1.6; }
+
+  table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:10.5px; }
+  thead th{ background:var(--teal); color:#fff; font-weight:700; text-align:left; padding:7px 9px; }
+  thead th:last-child{ text-align:center; width:46px; }
+  tbody td{ padding:7px 9px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.6; color:var(--sub); }
+  tbody td.work{ font-weight:800; color:var(--ink); width:34%; }
+  tbody tr:nth-child(even){ background:var(--soft); }
+  td.lv{ text-align:center; font-weight:900; }
+  .lv .b{ display:inline-block; min-width:22px; padding:2px 6px; border-radius:999px; font-size:11px; }
+  .lv-aa .b{ background:#dcfce7; color:#15803d; }
+  .lv-a  .b{ background:#ccfbf1; color:#0f766e; }
+  .lv-b  .b{ background:#fef3c7; color:#b45309; }
+  .small{ font-size:10px; color:var(--mut); }
+
+  .demo-row{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  .demo{ border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .demo .top{ padding:10px 12px; color:#fff; font-weight:800; font-size:12px; }
+  .demo .bd{ padding:8px 12px; font-size:10.5px; color:var(--sub); line-height:1.6; background:#fff; }
+  .t-sky{ background:linear-gradient(135deg,#0ea5e9,#2563eb); }
+  .t-cyan{ background:linear-gradient(135deg,#06b6d4,#0d9488); }
+  .t-violet{ background:linear-gradient(135deg,#8b5cf6,#c026d3); }
+
+  .hilite{ border-left:4px solid var(--violet); background:#faf5ff; border-radius:0 10px 10px 0; padding:12px 14px; font-size:12px; line-height:1.85; color:#3b0764; }
+  .value{ border-left:4px solid var(--teal); background:#f0fdfa; border-radius:0 10px 10px 0; padding:11px 14px; font-size:11.5px; line-height:1.8; color:#134e4a; }
+
+  .legend{ font-size:10px; color:var(--mut); margin-top:8px; }
+  .footer{ position:absolute; left:16mm; right:16mm; bottom:9mm; display:flex; justify-content:space-between; font-size:9px; color:#94a3b8; border-top:1px solid var(--line); padding-top:6px; }
+
+  .two{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  ul.clean{ list-style:none; }
+  ul.clean li{ font-size:11px; line-height:1.7; color:var(--sub); padding-left:16px; position:relative; }
+  ul.clean li::before{ content:"›"; position:absolute; left:2px; color:var(--teal); font-weight:900; }
+  ul.clean li b{ color:var(--ink); }
+  .steps-num{ counter-reset:s; }
+  .steps-num .it{ position:relative; padding:8px 0 8px 30px; font-size:11.5px; color:var(--sub); border-bottom:1px dashed var(--line); line-height:1.6; }
+  .steps-num .it::before{ counter-increment:s; content:counter(s); position:absolute; left:0; top:7px; width:20px; height:20px; border-radius:999px; background:var(--teal); color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .steps-num .it b{ color:var(--ink); }
+
+  /* ===== 拡張性ページ ===== */
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .chip{ font-size:10px; border:1px solid var(--line); background:#fff; border-radius:999px; padding:4px 10px; color:var(--sub); }
+  .chip b{ color:var(--teal); }
+  .applic{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+  .applic .it{ border:1px solid var(--line); border-radius:9px; padding:9px 11px; background:var(--soft); }
+  .applic .it .h{ font-size:11px; font-weight:800; color:var(--ink); }
+  .applic .it .p{ font-size:10px; color:var(--sub); margin-top:3px; line-height:1.55; }
+  .applic .it .ic{ margin-right:5px; }
+
+  /* ===== 自律レベルページ ===== */
+  .ladder{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
+  .lvl{ border:1px solid var(--line); border-radius:10px; padding:10px 11px 12px; background:#fff; position:relative; }
+  .lvl .badge{ display:inline-block; font-size:10px; font-weight:900; color:#fff; border-radius:6px; padding:2px 8px; }
+  .lvl .lab{ font-size:11.5px; font-weight:800; color:var(--ink); margin-top:6px; }
+  .lvl .ds{ font-size:9.5px; color:var(--sub); margin-top:4px; line-height:1.55; }
+  .lvl.l1 .badge{ background:#0ea5e9; } .lvl.l1{ border-top:3px solid #0ea5e9; }
+  .lvl.l2 .badge{ background:#0d9488; } .lvl.l2{ border-top:3px solid #0d9488; }
+  .lvl.l3 .badge{ background:#7c3aed; } .lvl.l3{ border-top:3px solid #7c3aed; }
+  .lvl.l4 .badge{ background:#c026d3; } .lvl.l4{ border-top:3px solid #c026d3; }
+  .here{ display:inline-block; margin-top:6px; font-size:8.5px; font-weight:800; color:#0ea5e9; }
+  .col-ok{ border-left:4px solid var(--teal); background:#f0fdfa; border-radius:0 10px 10px 0; padding:11px 13px; }
+  .col-no{ border-left:4px solid #d97706; background:#fffbeb; border-radius:0 10px 10px 0; padding:11px 13px; }
+  .col-ok .hd{ font-size:11.5px; font-weight:800; color:#0f766e; }
+  .col-no .hd{ font-size:11.5px; font-weight:800; color:#b45309; }
+  ul.tick{ list-style:none; margin-top:7px; }
+  ul.tick li{ font-size:10.5px; line-height:1.6; color:var(--sub); padding-left:16px; position:relative; margin-bottom:2px; }
+  ul.tick.ok li::before{ content:"✓"; position:absolute; left:1px; color:var(--teal); font-weight:900; }
+  ul.tick.no li::before{ content:"!"; position:absolute; left:3px; color:#d97706; font-weight:900; }
+  ul.tick li b{ color:var(--ink); }
+  .guard{ background:#0f172a; color:#cbd5e1; border-radius:10px; padding:12px 14px; margin-top:14px; }
+  .guard b{ color:#fff; }
+  .guard .row{ display:grid; grid-template-columns:repeat(2,1fr); gap:6px 16px; margin-top:8px; font-size:10.5px; line-height:1.5; }
+  .guard .row span b{ color:#5eead4; }
+</style>
+</head>
+<body>
+
+<!-- ===== 表紙 ===== -->
+<section class="cover">
+  <div class="cover-inner">
+    <div class="brand">
+      <div class="logo">✚</div>
+      <div>
+        <div class="name">MediAgent</div>
+        <div class="tag">病院業務 自律AIエージェント</div>
+      </div>
+    </div>
+
+    <span class="eyebrow">PROPOSAL ／ 業務効率化のご提案</span>
+    <h1>指示を待たず、<span class="accent">自ら考えて動く</span><br>病院の秘書AI。</h1>
+    <p class="lead">
+      院長秘書・総務の業務を、AIエージェントが「状況分析 → 自律アクション → 文面作成 → 完了報告」まで先回りで段取り。
+      送信・発注などの最終決定は必ず人間が承認する、医療現場に適した Human-in-the-Loop 設計です。
+    </p>
+
+    <div class="meta">
+      <div>デモURL<br><b class="url">https://testhosai.vercel.app</b></div>
+      <div>ご提案日<br><b>2026年6月</b></div>
+      <div>対象<br><b>院長秘書業務 ／ 病院総務業務</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== P1 デモ説明 ===== -->
+<section class="sheet">
+  <div class="pagehead"><span class="no">01</span><h2>デモ画面の説明</h2><span class="en">How it works</span></div>
+
+  <p class="body">
+    <b>MediAgent</b> は、院長秘書・総務を兼任する自律型AIの動きを"目で見える化"したデモです。
+    現場で起きた状況（トリガー）を選ぶと、エージェントが考える過程をリアルタイムに表示し、最後に人間へ承認を求めます。
+  </p>
+
+  <div class="card mt12">
+    <b style="font-size:12px;">画面の使い方（3ステップ）</b>
+    <div class="grid3 mt8">
+      <div class="step"><div class="n" style="color:var(--cyan)">1</div><div class="t">トリガーを選ぶ</div><div class="d">現場の出来事を3つのカードから選択</div></div>
+      <div class="step"><div class="n" style="color:var(--teal)">2</div><div class="t">エージェントが自律思考</div><div class="d">考える過程がコンソールに流れる</div></div>
+      <div class="step"><div class="n" style="color:var(--violet)">3</div><div class="t">人間が最終承認</div><div class="d">「承認 / 修正」を選ぶ。送信は承認後</div></div>
+    </div>
+  </div>
+
+  <div class="mt16"><b style="font-size:13px;">思考プロセス（ReAct フレームワーク）</b></div>
+  <table>
+    <thead><tr><th style="width:30%">ステップ</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td class="work">① 状況分析（Thought）</td><td>起きた問題と、予測されるリスク・影響を分析する</td></tr>
+      <tr><td class="work">② 自律アクション（Action）</td><td>指示されなくても「今やるべきこと」を自分で決定する</td></tr>
+      <tr><td class="work">③ 実行内容（Execution）</td><td>メール文面・発注書など、具体的なアウトプットを作成する</td></tr>
+      <tr><td class="work">④ 完了報告（Result）</td><td>人へ事後報告し、最終確認・承認を求める</td></tr>
+    </tbody>
+  </table>
+
+  <div class="mt16"><b style="font-size:13px;">3つのデモが象徴する「業務の3類型」</b></div>
+  <div class="demo-row mt8">
+    <div class="demo"><div class="top t-sky">📅 院長のスケジュール衝突</div><div class="bd"><b>調整・外部交渉</b><br>急な学会/医師会と来客のダブルブッキングを解消</div></div>
+    <div class="demo"><div class="top t-cyan">❄️ エアコン故障</div><div class="bd"><b>設備トラブルの一次対応</b><br>現場SOSの受付〜業者手配〜記録</div></div>
+    <div class="demo"><div class="top t-violet">📦 コピー用紙の在庫低下</div><div class="bd"><b>在庫管理・予測発注</b><br>消耗品の補充判断と発注ドラフト</div></div>
+  </div>
+
+  <div class="hilite mt16">
+    <b>設計思想 ─ Human-in-the-Loop（人間が最終承認）</b><br>
+    医療現場はコンプライアンスが最優先。MediAgent は「すぐ承認できる完成度の"案"を用意するところまで」を担い、
+    送信・発注・確定などの最終決定は必ず人間が行います。AIが勝手に外部へ連絡することはありません。
+  </div>
+
+  <div class="footer"><span>MediAgent ─ 病院業務 自律AIエージェント</span><span>01 / デモ画面の説明</span></div>
+</section>
+
+<!-- ===== P2 院長視点 ===== -->
+<section class="sheet">
+  <div class="pagehead"><span class="no">02</span><h2>院長視点 ─ 院長秘書業務の削減</h2><span class="en">For the Director</span></div>
+  <p class="body"><b>AIが得意なこと</b>＝調整・手配・文面作成・チェック・記録。<b>人が担うこと</b>＝物理作業（給仕・受け渡し等）と最終承認。</p>
+
+  <table class="mt8">
+    <thead><tr><th>業務</th><th>AIエージェントが肩代わりする部分</th><th>人が担う</th><th>削減</th></tr></thead>
+    <tbody>
+      <tr><td class="work">スケジュールの微調整<br><span class="small">急な学会・医師会・来客調整</span></td><td>予定の衝突を検知→優先度を判定→関係先へ変更・再調整メール案→カレンダー更新案を提示（<b>デモ①</b>）</td><td>送信可否・優先順位の判断</td><td class="lv lv-aa"><span class="b">◎</span></td></tr>
+      <tr><td class="work">出張・移動の手配<br><span class="small">新幹線・飛行機・ホテル</span></td><td>学会日程から逆算し、ルート/時間/料金の候補を比較表化、予約申請ドラフト、当日のしおり作成</td><td>予約の確定（決済）</td><td class="lv lv-aa"><span class="b">◎</span></td></tr>
+      <tr><td class="work">医師会・行政の書類整理<br><span class="small">定期便・通達の仕分け</span></td><td>受信文書を要約・分類（要対応/期限/共有先）、期限リマインド、回覧先の振り分け案</td><td>重要判断・押印</td><td class="lv lv-a"><span class="b">○</span></td></tr>
+      <tr><td class="work">贈答品・慶弔の対応<br><span class="small">お中元/お歳暮/祝電/供花</span></td><td>送付先リスト管理、時期の事前リマインド、予算内の手配・発注ドラフト、祝電・供花の文面案</td><td>送付先と文面の承認</td><td class="lv lv-a"><span class="b">○</span></td></tr>
+      <tr><td class="work">お茶出し・接客準備<br><span class="small">MS・他院の来客対応</span></td><td>来客予定の事前通知、応接室予約と準備チェックリスト、相手の嗜好（珈琲/お茶）記録、当日リマインド</td><td>実際の給仕（物理）</td><td class="lv lv-b"><span class="b">△</span></td></tr>
+      <tr><td class="work">学会発表の資料準備<br><span class="small">誤字チェック・印刷・格納</span></td><td>スライドの誤字脱字・体裁・用語統一チェック、印刷指示ドラフト、命名規則でドライブ格納・バックアップ</td><td>内容の最終確認</td><td class="lv lv-aa"><span class="b">◎</span></td></tr>
+      <tr><td class="work">私的な雑用<br><span class="small">清掃・クリーニング・弁当手配</span></td><td>定例リマインド、クリーニング集配の業者連絡ドラフト、弁当の定例発注（好み・予算反映）案</td><td>物理作業そのもの</td><td class="lv lv-b"><span class="b">△</span></td></tr>
+    </tbody>
+  </table>
+  <div class="legend">削減度の凡例： <b>◎</b> 大幅（判断前の作業をほぼ自動）／ <b>○</b> 部分（手配・ドラフトを自動）／ <b>△</b> 段取り・記録のみ（実作業は人）</div>
+
+  <div class="value mt16">
+    <b>院長への提供価値</b>：先生の手を止める前に「判断できる状態」まで整っている。秘書が不在・多忙でも調整と段取りが先回りで進み、
+    院長は <b>「承認」と「対人対応」</b> という人にしかできない仕事に集中できます。
+  </div>
+
+  <div class="footer"><span>MediAgent ─ 病院業務 自律AIエージェント</span><span>02 / 院長視点</span></div>
+</section>
+
+<!-- ===== P3 総務視点 ===== -->
+<section class="sheet">
+  <div class="pagehead"><span class="no">03</span><h2>病院総務視点 ─ 総務業務の削減</h2><span class="en">For Administration</span></div>
+  <p class="body">止まると現場が困る雑務を、AIが <b>受付・段取り・記録</b> まで巻き取ります。属人化しがちな台帳・在庫・期限管理を標準化します。</p>
+
+  <table class="mt8">
+    <thead><tr><th>業務</th><th>AIエージェントが肩代わりする部分</th><th>人が担う</th><th>削減</th></tr></thead>
+    <tbody>
+      <tr><td class="work">院内の消耗品補充<br><span class="small">事務用品・日用品の在庫/発注</span></td><td>在庫しきい値を監視→行事・健診を踏まえた需要予測→発注書ドラフト→承認後に発注（<b>デモ③</b>）</td><td>発注の承認</td><td class="lv lv-aa"><span class="b">◎</span></td></tr>
+      <tr><td class="work">職員の制服管理<br><span class="small">白衣・スクラブのサイズ/発注</span></td><td>入退職リストと連動しサイズ確認依頼、発注ドラフト、クリーニング業者との定期やり取りドラフト、貸与台帳管理</td><td>発注確定</td><td class="lv lv-a"><span class="b">○</span></td></tr>
+      <tr><td class="work">掲示物・案内板の更新<br><span class="small">休診案内・ポスター・撤去</span></td><td>休診情報から掲示データを自動生成、掲示・撤去のタスク化とリマインド、古い掲示の棚卸しリスト</td><td>物理的な貼り替え</td><td class="lv lv-a"><span class="b">○</span></td></tr>
+      <tr><td class="work">郵便物・宅配便の仕分け</td><td>宛先別の仕分けルール化、診療科/ドクター別の振り分け表、重要郵便の通知（宛名読取り連携で精度向上）</td><td>物理仕分け</td><td class="lv lv-b"><span class="b">△</span></td></tr>
+      <tr><td class="work">トラブルの一時対応<br><span class="small">電球・エアコン・車椅子のSOS</span></td><td>SOS受付→設備台帳照合→保守業者へ手配ドラフト→現場へ一次返答→対応状況をトラッキング（<b>デモ②</b>）</td><td>手配の承認／実修理は業者</td><td class="lv lv-aa"><span class="b">◎</span></td></tr>
+      <tr><td class="work">鍵の管理<br><span class="small">診察室・カルテ庫・薬品庫</span></td><td>貸出・返却の電子台帳、申請の受付と記録、未返却アラート、定期棚卸しリスト</td><td>物理の受け渡し</td><td class="lv lv-a"><span class="b">○</span></td></tr>
+      <tr><td class="work">行事・委員会の準備<br><span class="small">防災訓練・医療安全委・健診</span></td><td>開催案内と出欠管理、アジェンダ・資料の雛形作成と印刷指示、会場設営チェックリスト、議事録ドラフト</td><td>設営（物理）・内容承認</td><td class="lv lv-aa"><span class="b">◎</span></td></tr>
+      <tr><td class="work">電話・代表受付の一次対応<br><span class="small">クレーム・営業・道案内</span></td><td>一次受け・FAQ自動回答・営業電話の振り分け、用件を要約し担当部署へエスカレーション、クレーム記録</td><td>重要対応の最終判断</td><td class="lv lv-a"><span class="b">○</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="value mt16">
+    <b>総務への提供価値</b>：受付・段取り・記録をAIが巻き取ることで、<b>抜け漏れと「探す時間」が激減</b>。
+    台帳・在庫・期限管理が標準化され、担当者が変わっても業務品質が保たれます。
+  </div>
+
+  <div class="footer"><span>MediAgent ─ 病院業務 自律AIエージェント</span><span>03 / 総務視点</span></div>
+</section>
+
+<!-- ===== P4 拡張性 ===== -->
+<section class="sheet">
+  <div class="pagehead"><span class="no">04</span><h2>拡張性 ─ 例えば、こんなこともできる</h2><span class="en">Extensibility</span></div>
+
+  <p class="body">
+    MediAgent の仕組み（<b>トリガー → 自律思考 → 人間が承認</b>）は共通です。
+    つなぐデータと業務シナリオを差し替えるだけで、<b>1つ作れば院内のあらゆる業務へ横展開</b>できます。
+  </p>
+
+  <div class="card mt12">
+    <b style="font-size:12px;">連携できるデータ・ツール（例）</b>
+    <div class="chips">
+      <span class="chip">Google カレンダー</span>
+      <span class="chip">Gmail ／ Outlook</span>
+      <span class="chip">在庫センサー</span>
+      <span class="chip">設備台帳</span>
+      <span class="chip">勤怠・シフト表</span>
+      <span class="chip">購買サイト（アスクル等）</span>
+      <span class="chip">Teams ／ Slack ／ LINE WORKS</span>
+      <span class="chip">電話（IVR・一次受け）</span>
+      <span class="chip">会計・経費システム</span>
+      <span class="chip">各種Webサイト（自動操作）</span>
+    </div>
+  </div>
+
+  <div class="mt16"><b style="font-size:13px;">病院での応用シナリオ（例）</b></div>
+  <div class="applic">
+    <div class="it"><div class="h"><span class="ic">📲</span>患者リマインド</div><div class="p">予約前日の自動連絡、無断キャンセルの予兆検知と再案内</div></div>
+    <div class="it"><div class="h"><span class="ic">🔁</span>シフト・当直の欠員調整</div><div class="p">欠員発生時、代替候補へ打診メール／チャットのドラフト作成</div></div>
+    <div class="it"><div class="h"><span class="ic">💬</span>院内ヘルプデスク</div><div class="p">「あの申請どうやる？」等、職員からの問い合わせに社内FAQで即答</div></div>
+    <div class="it"><div class="h"><span class="ic">📊</span>経営モニタリング</div><div class="p">患者数・売上・在庫の異常を日次で検知し、要約レポートを配信</div></div>
+    <div class="it"><div class="h"><span class="ic">🛡️</span>医療安全・委員会支援</div><div class="p">インシデント報告の分類・集計、委員会資料・議事録のドラフト</div></div>
+    <div class="it"><div class="h"><span class="ic">🧑‍💼</span>採用対応</div><div class="p">応募者への一次返信、面接日程の調整、選考状況の台帳化</div></div>
+    <div class="it"><div class="h"><span class="ic">📜</span>制度・補助金ウォッチ</div><div class="p">行政・医師会の通達から該当しそうな制度を抽出してアラート</div></div>
+    <div class="it"><div class="h"><span class="ic">🌐</span>多言語案内</div><div class="p">外国人患者向けの案内文・問診票を必要言語に翻訳生成</div></div>
+  </div>
+
+  <div class="value mt16">
+    <b>横展開のしやすさ</b>：部署をまたいでも"仕組みは同じ"。新しい業務は「どのデータを見て・何を作り・誰が承認するか」を決めるだけで追加できます。
+    <span class="small">　※ 電子カルテ等の医療情報は、参照のみ・院内ルール厳守で慎重に設計します。</span>
+  </div>
+
+  <div class="footer"><span>MediAgent ─ 病院業務 自律AIエージェント</span><span>04 / 拡張性</span></div>
+</section>
+
+<!-- ===== P5 権限委譲・自律レベル ===== -->
+<section class="sheet">
+  <div class="pagehead"><span class="no">05</span><h2>権限委譲 ─ どこまで"無人"にできるか</h2><span class="en">Autonomy Levels</span></div>
+
+  <p class="body">
+    Human-in-the-Loop は「固定」ではありません。業務のリスクと運用実績に応じて、AIに渡す権限を<b>段階的に引き上げ</b>られます。
+    <b>低リスクは無人化、重要判断は人が承認</b>と切り分けるのが現実的です。
+  </p>
+
+  <div class="mt12"><b style="font-size:13px;">自律度の4段階</b></div>
+  <div class="ladder">
+    <div class="lvl l1"><span class="badge">L1</span><div class="lab">提案（現デモ）</div><div class="ds">AIが案を作り、毎回 人が承認してから送信・発注</div><span class="here">▲ 現在地</span></div>
+    <div class="lvl l2"><span class="badge">L2</span><div class="lab">例外承認</div><div class="ds">定型・低リスクは自動実行。例外だけ人へエスカレーション</div></div>
+    <div class="lvl l3"><span class="badge">L3</span><div class="lab">ルール内 自動</div><div class="ds">決めた範囲（金額/相手/時間帯）内は完全自動。範囲外は承認</div></div>
+    <div class="lvl l4"><span class="badge">L4</span><div class="lab">完全自律</div><div class="ds">AIが実行、人は監督のみ（事後ログ確認）</div></div>
+  </div>
+  <div class="legend">推奨：業務ごとに L1〜L3 を使い分け。最初は全業務 L1 から始め、実績を見て段階的に引き上げます。</div>
+
+  <div class="two mt16">
+    <div class="col-ok">
+      <div class="hd">✅ 人を介さず任せられる領域（L3〜）</div>
+      <ul class="tick ok">
+        <li><b>消耗品の定期補充発注</b>（上限金額・指定業者・しきい値内）</li>
+        <li><b>会議室・応接室の予約調整</b></li>
+        <li><b>職員向けの定例リマインド送信</b>（社内）</li>
+        <li><b>書類・郵便・メールの自動仕分け／タグ付け</b></li>
+        <li><b>在庫・期限・未返却の監視とアラート</b></li>
+        <li><b>社内FAQの自動一次回答</b></li>
+        <li><b>定型レポートの自動生成・配信</b></li>
+      </ul>
+      <div class="small mt8">共通点＝金額が小さい・可逆・社内・定型。</div>
+    </div>
+    <div class="col-no">
+      <div class="hd">⚠️ 必ず人が承認する領域（L1固定）</div>
+      <ul class="tick no">
+        <li><b>患者・医療に関わる判断</b>（自動化しない）</li>
+        <li><b>高額発注・契約・支払いの確定</b></li>
+        <li><b>対外的な謝罪・クレームの最終回答</b></li>
+        <li><b>人事・評価に関わる決定</b></li>
+        <li><b>個人情報・カルテの外部提供</b></li>
+      </ul>
+      <div class="small mt8">共通点＝不可逆・対外・高リスク・医療判断。</div>
+    </div>
+  </div>
+
+  <div class="guard">
+    <b>🔒 無人化を支える「ガードレール」</b>
+    <div class="row">
+      <span><b>金額上限</b>：1件・1日あたりの自動実行に上限を設定</span>
+      <span><b>相手のホワイトリスト</b>：登録済みの業者・宛先のみ自動送信</span>
+      <span><b>時間帯・件数制限</b>：営業時間内・1日◯件までに制限</span>
+      <span><b>全操作の監査ログ</b>：誰が・いつ・何をしたかを完全記録</span>
+    </div>
+    <p style="font-size:10.5px; line-height:1.7; margin-top:10px;">
+      設定した範囲を一歩でも超えた依頼は、<b style="color:#fca5a5;">自動で実行を停止し、人へエスカレーション</b>します。
+      「任せきり」ではなく「柵の中で任せる」設計なので、安心して権限を渡せます。
+    </p>
+  </div>
+
+  <div class="footer"><span>MediAgent ─ 病院業務 自律AIエージェント</span><span>05 / 権限委譲</span></div>
+</section>
+
+<!-- ===== P6 まとめ ===== -->
+<section class="sheet">
+  <div class="pagehead"><span class="no">06</span><h2>まとめ ＆ 導入の進め方</h2><span class="en">Summary & Roadmap</span></div>
+
+  <div class="two">
+    <div class="card">
+      <b style="font-size:12px; color:var(--teal)">AIが肩代わりできること（削減の中心）</b>
+      <ul class="clean mt8">
+        <li><b>調整・交渉</b>：日程衝突の解消、関係先への打診メール作成</li>
+        <li><b>手配・発注</b>：在庫/設備/出張/贈答の手配ドラフト</li>
+        <li><b>分類・トリアージ</b>：書類・郵便・電話の仕分けとエスカレーション</li>
+        <li><b>監視・予測</b>：在庫しきい値、期限・未返却、需要予測</li>
+        <li><b>チェック・記録</b>：資料の誤字/体裁チェック、台帳・議事録作成</li>
+      </ul>
+    </div>
+    <div class="card">
+      <b style="font-size:12px; color:var(--violet)">人が担い続けること</b>
+      <ul class="clean mt8">
+        <li><b>物理作業</b>：給仕・清掃・貼り替え・鍵や郵便の受け渡し・実機修理</li>
+        <li><b>最終承認</b>：送信・発注・確定（Human-in-the-Loop）</li>
+      </ul>
+      <div class="hilite mt12" style="font-size:11.5px;">
+        AIは「<b>判断の手前にある準備時間</b>」を丸ごと肩代わりします。<br>
+        人は <b>承認</b> と <b>対人対応</b> に集中できます。
+      </div>
+    </div>
+  </div>
+
+  <div class="mt20"><b style="font-size:13px;">導入の進め方（ご提案）</b></div>
+  <div class="steps-num mt8">
+    <div class="it"><b>まずデモの3類型から</b> ── スケジュール調整／設備トラブル／在庫発注。効果が見えやすく、リスクが低い領域からスタート。</div>
+    <div class="it"><b>データ連携を段階的に</b> ── カレンダー・在庫センサー・設備台帳・メールを順次つなぎ込み。</div>
+    <div class="it"><b>承認フローを現行の決裁ルールに合わせる</b> ── 誰が・何を承認するかを設定し、現場の運用に馴染ませる。</div>
+    <div class="it"><b>横展開</b> ── 慣れてきたら書類仕分け・行事準備・受付一次対応へ拡大。</div>
+  </div>
+
+  <div class="card mt20" style="background:#0f172a; color:#cbd5e1; border:none;">
+    <b style="color:#fff; font-size:13px;">次のステップ</b>
+    <p style="font-size:11.5px; line-height:1.8; margin-top:6px;">
+      本デモはシミュレーションです（実際の送信・発注・カレンダー更新は行いません）。
+      実運用版は、同じ画面のまま中身を「実データ＋AIによるその場の生成」に差し替えて構築します。
+      まずはデモをご覧いただき、貴院で削減インパクトの大きい業務から優先的にご相談させてください。
+    </p>
+    <p style="font-size:11.5px; margin-top:8px; color:#5eead4;">▶ デモ： https://testhosai.vercel.app</p>
+  </div>
+
+  <div class="footer"><span>MediAgent ─ 病院業務 自律AIエージェント</span><span>06 / まとめ</span></div>
+</section>
+
+</body>
+</html>

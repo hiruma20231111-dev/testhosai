@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MediAgent ─ 病院業務 自律AIエージェント",
+  title: "AIエージェント体験デモ | 関西ぱど AIブートキャンプ",
   description:
-    "院長秘書・総務業務を兼任する自律型AIエージェントのデモ。ReActフレームワークで状況分析→自律アクション→実行→完了報告まで思考過程を可視化し、最終承認は人間が行うHuman-in-the-Loop設計。",
+    "医療・中小企業・個人事業主の3業種で、自律型AIエージェントの動きを体験できるデモ。ReActフレームワークで状況分析→自律アクション→実行→完了報告まで思考過程を可視化し、最終承認は人間が行うHuman-in-the-Loop設計。関西ぱど AIブートキャンプ。",
 };
 
 export default function RootLayout({
