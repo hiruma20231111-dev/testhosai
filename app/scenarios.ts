@@ -14,6 +14,13 @@ export type Execution =
       fields: { label: string; value: string }[];
     };
 
+/** エージェントが自律的に呼び出すツール（可視化の核） */
+export interface ToolCall {
+  tool: string; // 表示名（Calendar / AssetDB など）
+  call: string; // 擬似コード表記の呼び出し
+  result: string; // 返ってきた結果
+}
+
 export interface Scenario {
   id: string;
   icon: string;
@@ -25,6 +32,7 @@ export interface Scenario {
   urgency: "高" | "中" | "低";
   thought: string;
   action: string;
+  toolCalls: ToolCall[];
   execution: Execution;
   result: string;
   approveLabel: string;
@@ -80,7 +88,13 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
       thought:
         "医師会の緊急役員会は院長にとって最優先事項であり出席必須。同時間帯のA社との面談を延期・移動させる必要がある。院長の手を煩わせず、AI側でA社と日程再調整の交渉を行う。",
       action:
-        "院長カレンダーの空き状況（翌木曜 15:00 / 翌金曜 11:00）を確認。A社担当者へ、丁寧な日程変更打診メールを自動作成する。",
+        "院長カレンダーの空き状況を確認し、A社担当者へ丁寧な日程変更打診メールを自動作成する。医師会の役員会は仮押さえしておく。",
+      toolCalls: [
+        { tool: "Calendar", call: "calendar.findConflicts(院長, 水14:00)", result: "「A社面談」と重複を検出" },
+        { tool: "Calendar", call: "calendar.findFreeSlots(院長, 来週)", result: "翌木15:00 / 翌金11:00 が空き" },
+        { tool: "Contacts", call: "contacts.lookup('製薬A社 担当')", result: "田中様の連絡先を取得" },
+        { tool: "Mail", call: "mail.compose(日程変更の打診)", result: "メール下書きを生成" },
+      ],
       execution: {
         kind: "email",
         to: "製薬会社A社 ご担当者",
@@ -105,9 +119,15 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
         "「2階のナースステーションのエアコンから異音がして、冷えが悪くなってきた」と病棟看護師よりチャットで連絡が入った。",
       urgency: "高",
       thought:
-        "ナースステーションの室温上昇は、医療スタッフのパフォーマンス低下や精密機器の熱暴走に繋がるため迅速な対応が必要。設備台帳を確認し、2階エアコンは「B空調管理株式会社」と24時間対応の保守契約を結んでいることを特定した。",
+        "ナースステーションの室温上昇は、医療スタッフのパフォーマンス低下や精密機器の熱暴走に繋がるため迅速な対応が必要。設備台帳を確認し、保守契約先へ最短の修理を要請する。",
       action:
         "保守業者へ型番と症状を添えて最短での修理訪問を要請するメールを自動作成。同時に、現地（看護師）へ進捗を一次共有する。",
+      toolCalls: [
+        { tool: "AssetDB", call: "assets.lookup('2F ナースステーション エアコン')", result: "型番 ダイキンXYZ-123 を特定" },
+        { tool: "Contracts", call: "contracts.findMaintenance(該当機器)", result: "B空調管理（24時間対応）と契約中" },
+        { tool: "Mail", call: "mail.compose(修理依頼, 型番+症状)", result: "依頼メール下書きを生成" },
+        { tool: "Chat", call: "chat.reply(看護師, '業者を手配中')", result: "一次返答を送信予約" },
+      ],
       execution: {
         kind: "email",
         to: "B空調管理株式会社（24時間保守窓口）",
@@ -132,9 +152,15 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
         "在庫センサー（スマートマット）が、A4コピー用紙の在庫が「残り2箱」になったことを検知した。",
       urgency: "中",
       thought:
-        "在庫2箱は発注アラートの基準値。さらに来週は「春の健康診断（問診票の大量印刷）」が予定されており、通常週の3倍のコピー用紙を消費すると予測される。通常の発注量（5箱）では足りないため、15箱の発注が必要と判断した。",
+        "在庫2箱は発注アラートの基準値。さらに来週は健康診断が予定されており、問診票の大量印刷で消費が通常の3倍と予測される。通常発注量では不足するため、増量して手配する必要がある。",
       action:
-        "登録済みの購買サイト（アスクル等）の価格と納期を確認。最安値かつ「今週土曜までに届く」条件でカートに入れ、決済申請書を自動作成する。",
+        "登録済みの購買サイトの価格と納期を確認。最安値かつ「今週土曜までに届く」条件で、増量した発注申請書を自動作成する。",
+      toolCalls: [
+        { tool: "Inventory", call: "inventory.check('A4コピー用紙')", result: "残2箱（発注点を下回る）" },
+        { tool: "Calendar", call: "calendar.scan(来週の院内行事)", result: "春の健康診断を検出 → 需要3倍と予測" },
+        { tool: "Procurement", call: "procurement.quote('A4用紙15箱')", result: "アスクル最安・今週土曜着" },
+        { tool: "Form", call: "form.createPurchaseOrder(15箱)", result: "発注申請書を生成" },
+      ],
       execution: {
         kind: "order",
         docLabel: "発注承認申請書",
@@ -143,10 +169,7 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
           { label: "購入先", value: "アスクル（即日配送・最安値）" },
           { label: "納期", value: "今週土曜 着" },
           { label: "総額", value: "￥XX,XXX（税込）" },
-          {
-            label: "発注理由",
-            value: "来週の健康診断による大量印刷を見越し、通常より10箱増量して手配。",
-          },
+          { label: "発注理由", value: "来週の健康診断による大量印刷を見越し、通常より10箱増量して手配。" },
         ],
       },
       result:
@@ -171,9 +194,16 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
         "新規取引先から「製品Xを500個、納期と単価のお見積りを至急いただきたい」とメールを受信。しかし担当営業は外出中で連絡がつかない。",
       urgency: "高",
       thought:
-        "大口の新規引き合いは、即レスの遅れがそのまま機会損失になる。担当不在でも、過去の類似見積もりと現行の単価表・在庫・標準納期を参照すれば概算見積もりは作成できる。確定単価は担当の確認が必要なため、まず一次見積もりと受領のお礼を返し、機会を逃さない。",
+        "大口の新規引き合いは、即レスの遅れがそのまま機会損失になる。担当不在でも、過去の類似見積もりと現行の単価表・在庫・標準納期を参照すれば概算見積もりは作成できる。まず一次見積もりと受領のお礼を返し、機会を逃さない。",
       action:
-        "過去案件データから類似見積もりを検索し、数量500個の数量割引単価と標準納期を算出。一次見積もりのドラフトと、受領お礼メールを自動作成。担当営業へも案件を通知する。",
+        "過去案件から類似見積もりを検索し、数量割引単価と標準納期を算出。一次見積もりのドラフトと受領お礼メールを作成し、担当営業へも案件を通知する。",
+      toolCalls: [
+        { tool: "CRM", call: "crm.findSimilar('製品X 大口見積')", result: "類似案件3件を取得" },
+        { tool: "Pricing", call: "pricing.calc('製品X', 500)", result: "数量割引単価を算出" },
+        { tool: "Inventory", call: "stock.leadTime('製品X')", result: "標準納期 約2週間" },
+        { tool: "Mail", call: "mail.compose(一次見積+受領)", result: "下書きを生成" },
+        { tool: "Notify", call: "notify(担当営業, 新規案件)", result: "案件を引き継ぎ通知" },
+      ],
       execution: {
         kind: "email",
         to: "新規取引先 ご担当者",
@@ -198,9 +228,15 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
         "主要仕入先から「部材Yの入荷が1週間遅れる」と連絡。この部材を使う顧客向け受注が複数、進行中である。",
       urgency: "高",
       thought:
-        "部材Yの遅延は、これを使う受注の納期に直結して影響する。放置して納期直前に発覚すると顧客の信頼を大きく損なう。まず影響する受注を特定し、各顧客へ早期にお詫びと代替案（納期変更／一部先行の分納）を提示することで、被害を最小化する。",
+        "部材Yの遅延は、これを使う受注の納期に直結して影響する。放置して納期直前に発覚すると顧客の信頼を大きく損なう。まず影響する受注を特定し、各顧客へ早期にお詫びと代替案を提示することで被害を最小化する。",
       action:
-        "受注管理データから部材Yを使う進行中案件を抽出（3件が該当）。各顧客向けに、納期変更のお詫びと2つの代替案を提示するメールを自動作成。社内の生産・営業にも影響範囲を共有する。",
+        "影響する進行中案件を抽出し、各顧客向けに納期変更のお詫びと代替案を提示するメールを作成。仕入先には前倒し可否を照会する。",
+      toolCalls: [
+        { tool: "Orders", call: "orders.findByMaterial('部材Y')", result: "進行中の受注3件が該当" },
+        { tool: "Schedule", call: "production.recalc(納期影響)", result: "各納期 +1週間 と試算" },
+        { tool: "Mail", call: "mail.compose(お詫び+代替案 ×3社)", result: "3社分の下書きを生成" },
+        { tool: "Supplier", call: "supplier.inquire(前倒し可否)", result: "仕入先へ照会を作成" },
+      ],
       execution: {
         kind: "email",
         to: "該当顧客 各位（3社）",
@@ -225,9 +261,15 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
         "月末の入金消込で、支払期日を過ぎても入金が確認できない取引先が2社見つかった。",
       urgency: "中",
       thought:
-        "売掛金の回収遅れは資金繰りに直結する。早期の督促が重要だが、取引関係を損なわないよう丁寧な文面が必要。行き違いの可能性も考慮し、請求書番号・金額・支払期日を添えて、柔らかい入金確認の連絡を行う。",
+        "売掛金の回収遅れは資金繰りに直結する。早期の督促が重要だが、取引関係を損なわないよう丁寧な文面が必要。行き違いの可能性も考慮し、請求情報を添えて柔らかい入金確認を行う。",
       action:
-        "会計データから未入金2件の請求書番号・金額・支払期日を取得。各社向けに、丁寧な入金確認メールを自動作成。あわせて経理担当へ未回収一覧を報告する。",
+        "未入金の請求書番号・金額・支払期日を取得し、各社向けに丁寧な入金確認メールを作成。経理担当へ未回収一覧を報告する。",
+      toolCalls: [
+        { tool: "Accounting", call: "ledger.scanOverdue()", result: "期日超過の未入金 2件を検出" },
+        { tool: "Accounting", call: "invoice.lookup(該当2件)", result: "請求番号・金額・期日を取得" },
+        { tool: "Mail", call: "mail.compose(入金確認, 丁寧文面)", result: "督促メール下書きを生成" },
+        { tool: "Report", call: "report.toAccounting(未回収一覧)", result: "経理向け報告を作成" },
+      ],
       execution: {
         kind: "email",
         to: "〇〇株式会社 ご経理ご担当者",
@@ -256,9 +298,15 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
         "進行中案件「Webサイト制作（〇〇様）」のステータスが「納品完了」に更新された。請求がまだ発行されていない。",
       urgency: "中",
       thought:
-        "案件完了後の請求漏れ・請求遅れは、そのまま入金の遅れに直結する。個人事業主はキャッシュフローがシビアなので、契約金額・支払条件をもとに請求書を即作成し、送付メールまで用意して、回収サイクルを早める。",
+        "案件完了後の請求漏れ・請求遅れは、そのまま入金の遅れに直結する。キャッシュフローを安定させるため、契約金額・支払条件をもとに請求書を即作成し、送付メールまで用意して回収サイクルを早める。",
       action:
-        "案件データから契約金額・支払条件を取得し、請求書ドラフト（請求番号・金額・振込先・支払期日）を作成。あわせて送付メールの文面も用意する。",
+        "案件データから契約金額・支払条件を取得し、請求書ドラフトを作成。あわせて送付メールの文面も用意する。",
+      toolCalls: [
+        { tool: "Tasks", call: "tasks.detect(status='納品完了')", result: "「Webサイト制作」完了を検知" },
+        { tool: "Contract", call: "contract.lookup(該当案件)", result: "契約金額・支払条件を取得" },
+        { tool: "Invoice", call: "invoice.create()", result: "請求書ドラフトを生成" },
+        { tool: "Mail", call: "mail.compose(請求書 送付)", result: "送付メールを生成" },
+      ],
       execution: {
         kind: "order",
         docLabel: "請求書ドラフト",
@@ -291,7 +339,13 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
       thought:
         "個人事業主は分身が利かないため、ダブルブッキングは即調整が必要。カレンダーの空き状況をもとに、片方は希望どおり確定し、もう片方には近い別候補を提示することで、双方に角が立たないよう調整する。",
       action:
-        "カレンダーの空き（水曜午後 / 木曜午前 / 金曜午後）を確認。先に届いたA社は水曜午後で確定案内、B社へは木曜午前・金曜午後の代替候補を提示する返信を自動作成する。",
+        "先に届いたA社は水曜午後で確定案内、B社へは別の空き枠を代替候補として提示する返信を自動作成する。",
+      toolCalls: [
+        { tool: "Inbox", call: "inbox.scan(打合せ依頼)", result: "2件が「水曜午後」で重複" },
+        { tool: "Calendar", call: "calendar.findFreeSlots(来週)", result: "木10:00 / 金15:00 が空き" },
+        { tool: "Calendar", call: "calendar.hold('A社', 水曜午後)", result: "A社を仮確定" },
+        { tool: "Mail", call: "mail.compose(B社へ代替候補)", result: "返信下書きを生成" },
+      ],
       execution: {
         kind: "email",
         to: "B社 ご担当者",
@@ -316,9 +370,15 @@ export const scenariosByMode: Record<Mode, Scenario[]> = {
         "今月分のレシート・カード明細が取り込まれ、未分類の経費が23件たまっている。",
       urgency: "低",
       thought:
-        "経費の仕分けを溜め込むと、確定申告期にまとめて大きな負担になる。月内に勘定科目へ自動分類し、判断が割れるものだけ抽出すれば、申告準備が平準化される。事業按分やプライベート混在の可能性があるものは、人の確認を残す必要がある。",
+        "経費の仕分けを溜め込むと、確定申告期にまとめて大きな負担になる。月内に勘定科目へ自動分類し、判断が割れるものだけ抽出すれば、申告準備が平準化される。事業按分や私的混在の可能性があるものは、人の確認を残す。",
       action:
-        "23件を勘定科目（旅費交通費／消耗品費／会議費／通信費 など）へ自動分類。家事按分・私的混在の可能性がある5件を「要確認」として抽出し、月次サマリーを作成する。",
+        "未分類の経費を勘定科目へ自動分類し、判断が割れるものを「要確認」として抽出。月次サマリーを作成する。",
+      toolCalls: [
+        { tool: "Expense", call: "receipts.import()", result: "未分類 23件を取込" },
+        { tool: "Classifier", call: "classify.byCategory(23件)", result: "18件を勘定科目へ自動分類" },
+        { tool: "Review", call: "flag.ambiguous()", result: "家事按分など5件を要確認に抽出" },
+        { tool: "Report", call: "report.monthly()", result: "月次サマリーを生成" },
+      ],
       execution: {
         kind: "order",
         docLabel: "今月の経費サマリー",
